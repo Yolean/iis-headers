@@ -7,11 +7,12 @@ using System.Collections.Specialized;
 using System.DirectoryServices;
 using System.DirectoryServices.AccountManagement;
 
-namespace HeaderPassthrough
+namespace LogonPassthrough
 {
     public class HeaderManager : IHttpModule
     {
 
+        private const String NOT_SET = "Undefined";
 
         public void Dispose()
         {
@@ -32,6 +33,18 @@ namespace HeaderPassthrough
             for (int i = 0; i < keys.Length; i++)
             {
                 application.Context.Response.Output.WriteLine(i + " => " + keys[i] + " => " + coll.Get(keys[i]) + "<br>\n");
+            }
+        }
+
+        private void addHeader(NameValueCollection headers, String headerName, String headerValue)
+        {
+            if (headerValue == null)
+            {
+                headers.Add(headerName, NOT_SET);
+            }
+            else
+            {
+                headers.Add(headerName, headerValue);
             }
         }
 
@@ -58,26 +71,27 @@ namespace HeaderPassthrough
                     if (user_principal != null)
                     {
                         var headers = application.Context.Request.Headers;
-                        if (user_principal.DistinguishedName != null)
-                        {
-                            headers.Add("USER_DISTINGUISHED_NAME", user_principal.DistinguishedName);
-                        }
-                        if (user_principal.EmailAddress != null)
-                        {
-                            headers.Add("USER_EMAIL_ADDRESS", user_principal.EmailAddress);
-                        }
-                        if (user_principal.DisplayName != null)
-                        {
-                            headers.Add("USER_DISPLAY_NAME", user_principal.DisplayName);
-                        }
+                        addHeader(headers, "X-Logon-DistinguishedName", user_principal.DistinguishedName);
+                        addHeader(headers, "X-Logon-EmailAddress", user_principal.EmailAddress);
+                        addHeader(headers, "X-Logon-DisplayName", user_principal.DisplayName);
+
                         if (user_principal.GetGroups() != null)
                         {
-                            int counter = 0;
-                            foreach(GroupPrincipal group in user_principal.GetGroups())
+                            String groups = "";
+                            foreach (GroupPrincipal group in user_principal.GetGroups())
                             {
-                                headers.Add("USER_GROUP_" + counter.ToString(), group.ToString());
-                                counter++;
+                                groups += group.ToString() + ",";
                             }
+                            int lastChar = groups.Length - 1;
+                            if (groups[lastChar] == ',')
+                            {
+                                groups.Remove(lastChar);
+                            }
+                            headers.Add("X-Logon-Groups", groups);
+                        }
+                        else
+                        {
+                            headers.Add("X-Logon-Groups", NOT_SET);
                         }
                     }
                     else
