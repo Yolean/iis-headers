@@ -71,6 +71,7 @@ namespace LogonPassthrough
                     if (user_principal != null)
                     {
                         var headers = application.Context.Request.Headers;
+                        addHeader(headers, "X-Logon-AccountName", user_principal.SamAccountName);
                         addHeader(headers, "X-Logon-DistinguishedName", user_principal.DistinguishedName);
                         addHeader(headers, "X-Logon-EmailAddress", user_principal.EmailAddress);
                         addHeader(headers, "X-Logon-DisplayName", user_principal.DisplayName);
@@ -83,9 +84,9 @@ namespace LogonPassthrough
                                 groups += group.ToString() + ",";
                             }
                             int lastChar = groups.Length - 1;
-                            if (groups[lastChar] == ',')
+                            if (groups[lastChar].Equals(','))
                             {
-                                groups.Remove(lastChar);
+                                groups = groups.Remove(lastChar);
                             }
                             headers.Add("X-Logon-Groups", groups);
                         }
