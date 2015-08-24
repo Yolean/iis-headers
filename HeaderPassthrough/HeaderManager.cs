@@ -71,10 +71,11 @@ namespace LogonPassthrough
                     if (user_principal != null)
                     {
                         var headers = application.Context.Request.Headers;
-                        addHeader(headers, "X-Logon-AccountName", user_principal.SamAccountName);
+                        addHeader(headers, "X-Logon-AccountName", user_principal.EmailAddress);
                         addHeader(headers, "X-Logon-DistinguishedName", user_principal.DistinguishedName);
                         addHeader(headers, "X-Logon-EmailAddress", user_principal.EmailAddress);
                         addHeader(headers, "X-Logon-DisplayName", user_principal.DisplayName);
+                        addHeader(headers, "X-Logon-DomainUserName", user_principal.SamAccountName);
 
                         if (user_principal.GetGroups() != null)
                         {
