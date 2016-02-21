@@ -56,6 +56,10 @@ namespace LogonPassthrough
             {
                 return;
             }
+            if (req.Path.StartsWith("/live/"))
+            {
+                return;
+            }
             if (req.ServerVariables.AllKeys.Contains("LOGON_USER"))
             {
                 String logon_user = application.Context.Request.ServerVariables.Get("LOGON_USER");
